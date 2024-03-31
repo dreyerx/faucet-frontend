@@ -1,113 +1,201 @@
-import Image from "next/image";
+"use client"
+import { Alert, AlertIcon, AlertStatus, Box, Button, CloseButton, Flex, HStack, Heading, Image, Input, Link, Table, TableCaption, TableContainer, Tbody, Td, Text, Th, Thead, Tr, VStack, useBreakpoint } from "@chakra-ui/react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import moment from "moment";
 
-export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+import React, { Component } from 'react'
+import { claimFaucet, getLastTransactions } from "./logic/api";
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
+interface TxProps {
+  tx: string,
+  date: Date,
+  to: string,
+  value: number,
+  block: string
+}
+
+interface TxResponseProps {
+  block: string,
+  timestamp: string,
+  to: string,
+  txhash: string,
+  value: number
+}
+
+interface HomeState {
+  lastTxs: Array<TxProps>,
+  address: string,
+
+  alertVisible: boolean,
+  alertMessage: string,
+  alertColor: string,
+
+  tableFooterText: string
+}
+
+const ALERT_ERROR_BG = "#a11a1a"
+const ALERT_SUCCESS_BG = "#1ca11a"
+
+export default class Home extends Component<{}, HomeState> {
+  constructor(props: any) {
+    super(props)
+
+    this.state = {
+      address: "",
+      lastTxs: [],
+      alertVisible: false,
+      alertMessage: "",
+      alertColor: "#a11a1a",
+
+      tableFooterText: "DreyerX Faucet Last Transactions"
+    }
+  }
+
+  async syncLastTransactions() {
+    const lastTransactions = await getLastTransactions()
+    if (lastTransactions.status == "ok") {
+      const data = lastTransactions.data
+      let lastTxs: Array<TxProps> = []
+      data.forEach((v: TxResponseProps) => {
+        lastTxs.push({
+          tx: v.txhash,
+          date: new Date(v.timestamp),
+          to: v.to,
+          value: v.value,
+          block: v.block
+        })
+      })
+      this.setState({ lastTxs: lastTxs })
+    }
+  }
+
+  componentDidMount(): void {
+    (async () => {
+      await this.syncLastTransactions()
+    })()
+  }
+
+  showAlert(message: string, bg: string) {
+    this.setState({
+      alertMessage: message,
+      alertVisible: true,
+      alertColor: bg
+    })
+  }
+
+  async sendTestCoin() {
+    if (this.state.address === "") {
+      this.showAlert("The address cannot be empty!", ALERT_ERROR_BG)
+    } else {
+      const response = await claimFaucet(this.state.address)
+      if (response.status == "fail") {
+        this.showAlert(response.message, ALERT_ERROR_BG)
+      } else {
+        this.showAlert("Successfully to claim faucet", ALERT_SUCCESS_BG)
+        await this.syncLastTransactions()
+      }
+    }
+  }
+
+  render() {
+    return (
+      <>
         <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+          src="https://svgshare.com/i/eGa.svg"
+          w={"full"}
+          h={"calc(100vh)"}
+          opacity={.2}
+          position={"absolute"}
+          zIndex={-9999}
         />
-      </div>
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
+        <Flex
+          flexDirection={"column"}
+          justifyContent={"center"}
+          alignItems={"center"}
+          gap={2}
+          height={"calc(100vh)"}
+          mx={{ base: 2, sm: 5, md: 10, lg: 400 }}
         >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+          <Box bg={"card"} p={10} w={"full"}>
+            <Heading size={{ sm: "sm", base: "md" }}>
+              DreyerX Testnet Faucet
+            </Heading>
+            <Box mt={10}>
+              {
+                this.state.alertVisible ? (
+                  <Alert mb={3} bg={this.state.alertColor} borderRadius={10}>
+                    <AlertIcon color={"white"} />
+                    <Text>{this.state.alertMessage}</Text>
+                    <CloseButton
+                      ml={"auto"}
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  );
+                      onClick={() => this.setState({ alertVisible: false })}
+                    />
+                  </Alert>
+                ) : null
+              }
+              <Input
+                placeholder="Enter your wallet"
+                ringColor={"primary"}
+                _active={{
+                  outlineColor: "primary"
+                }}
+                onChange={(e) => this.setState({ address: e.target.value })}
+              />
+              <Button
+                w={"full"}
+                mt={3}
+                bg={"primary"}
+                fontWeight={"500"}
+                _hover={{
+                  bg: "hover.primary"
+                }}
+                _active={{
+                  bg: "hover.primary"
+                }}
+                onClick={async () => this.sendTestCoin()}
+              >Send me test coin</Button>
+            </Box>
+          </Box>
+          <Box bg={"card"} p={10} w={"full"}>
+            <Heading size={"md"}>
+              Last Transactions
+            </Heading>
+            <Box mt={10}>
+              <TableContainer>
+                <Table>
+                  <TableCaption opacity={.5}>{this.state.tableFooterText}</TableCaption>
+                  <Thead>
+                    <Tr>
+                      <Th>Txn Hash</Th>
+                      <Th>Block</Th>
+                      <Th>Age</Th>
+                      <Th>To</Th>
+                      <Th>Value</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {
+                      this.state.lastTxs.map((v: TxProps, index: number) => {
+                        return (
+                          <Tr key={v.tx}>
+                            <Td>{v.tx.slice(0, 5)}...</Td>
+                            <Td>{v.block}</Td>
+                            <Td>{moment(v.date).fromNow()}</Td>
+                            <Td>{v.to.slice(0, 5)}...</Td>
+                            <Td>{v.value / 10 ** 18}</Td>
+                          </Tr>
+                        )
+                      })
+                    }
+                  </Tbody>
+                </Table>
+              </TableContainer>
+            </Box>
+          </Box>
+        </Flex>
+      </>
+    )
+  }
 }
