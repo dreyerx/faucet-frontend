@@ -1,32 +1,9 @@
 import type { Metadata } from "next";
-import { Inter, Montserrat, Poppins } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import Theme from "./theme";
 
 const montserrat  = Montserrat({
-  subsets: ["latin"],
-  weight: [
-    "100",
-    "200",
-    "300",
-    "400",
-    "500",
-    "600",
-    "700",
-    "800",
-    "900"
-  ],
-  preload: false
-})
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: [
-    "300",
-    "500",
-    "800",
-    "900"
-  ],
-  preload: true
+  subsets: ["latin"]
 })
 
 export const metadata: Metadata = {
