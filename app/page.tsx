@@ -1,6 +1,5 @@
 "use client"
-import { Alert, AlertIcon, AlertStatus, Box, Button, CloseButton, Flex, HStack, Heading, Image, Input, Link, Table, TableCaption, TableContainer, Tbody, Td, Text, Th, Thead, Tr, VStack, useBreakpoint } from "@chakra-ui/react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Alert, AlertIcon, AlertStatus, Box, Button, CloseButton, Flex, HStack, Heading, Image, Input, Link, Spinner, Table, TableCaption, TableContainer, Tbody, Td, Text, Th, Thead, Tr, VStack, useBreakpoint } from "@chakra-ui/react";
 import moment from "moment";
 
 import React, { Component } from 'react'
@@ -26,6 +25,7 @@ interface HomeState {
   lastTxs: Array<TxProps>,
   address: string,
 
+  isFaucetLoading: boolean,
   alertVisible: boolean,
   alertMessage: string,
   alertColor: string,
@@ -43,6 +43,7 @@ export default class Home extends Component<{}, HomeState> {
     this.state = {
       address: "",
       lastTxs: [],
+      isFaucetLoading: false,
       alertVisible: false,
       alertMessage: "",
       alertColor: "#a11a1a",
@@ -84,8 +85,10 @@ export default class Home extends Component<{}, HomeState> {
   }
 
   async sendTestCoin() {
+    this.setState({ isFaucetLoading: true })
     if (this.state.address === "") {
       this.showAlert("The address cannot be empty!", ALERT_ERROR_BG)
+      this.setState({ isFaucetLoading: false })
     } else {
       const response = await claimFaucet(this.state.address)
       if (response.status == "fail") {
@@ -94,9 +97,48 @@ export default class Home extends Component<{}, HomeState> {
         this.showAlert("Successfully to claim faucet", ALERT_SUCCESS_BG)
         await this.syncLastTransactions()
       }
+      this.setState({ isFaucetLoading: false })
     }
   }
 
+  renderButton() {
+    if (!this.state.isFaucetLoading) {
+      return (
+        <Button
+          w={"full"}
+          mt={3}
+          bg={"primary"}
+          fontWeight={"500"}
+          _hover={{
+            bg: "hover.primary"
+          }}
+          _active={{
+            bg: "hover.primary"
+          }}
+          onClick={async () => this.sendTestCoin()}
+        >Send me test coin</Button>
+      )
+    } else {
+      return (
+        <Button
+          w={"full"}
+          mt={3}
+          bg={"primary"}
+          fontWeight={"500"}
+          _hover={{
+            bg: "primary"
+          }}
+          _active={{
+            bg: "primary"
+          }}
+          opacity={.7}
+          disabled
+        >
+          <Spinner mx={3} speed={".9s"}></Spinner>Loading
+        </Button>
+      )
+    }
+  }
   render() {
     return (
       <>
@@ -143,19 +185,9 @@ export default class Home extends Component<{}, HomeState> {
                 }}
                 onChange={(e) => this.setState({ address: e.target.value })}
               />
-              <Button
-                w={"full"}
-                mt={3}
-                bg={"primary"}
-                fontWeight={"500"}
-                _hover={{
-                  bg: "hover.primary"
-                }}
-                _active={{
-                  bg: "hover.primary"
-                }}
-                onClick={async () => this.sendTestCoin()}
-              >Send me test coin</Button>
+              {
+                this.renderButton()
+              }
             </Box>
           </Box>
           <Box bg={"card"} p={10} w={"full"}>
@@ -169,7 +201,6 @@ export default class Home extends Component<{}, HomeState> {
                   <Thead>
                     <Tr>
                       <Th>Txn Hash</Th>
-                      <Th>Block</Th>
                       <Th>Age</Th>
                       <Th>To</Th>
                       <Th>Value</Th>
@@ -180,8 +211,9 @@ export default class Home extends Component<{}, HomeState> {
                       this.state.lastTxs.map((v: TxProps, index: number) => {
                         return (
                           <Tr key={v.tx}>
-                            <Td>{v.tx.slice(0, 5)}...</Td>
-                            <Td>{v.block}</Td>
+                            <Td>
+                              <Link href={process.env.explorer_url + "/tx/" + v.tx} target="_blank">{v.tx.slice(0, 5)}...</Link>
+                            </Td>
                             <Td>{moment(v.date).fromNow()}</Td>
                             <Td>{v.to.slice(0, 5)}...</Td>
                             <Td>{v.value / 10 ** 18}</Td>
