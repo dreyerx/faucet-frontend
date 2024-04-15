@@ -1,113 +1,171 @@
-import Image from "next/image";
+'use client'
+import { Box, Button, Flex, Input, Link, Toast, VStack } from "@chakra-ui/react";
+import { Image } from "@chakra-ui/react";
+import detectEthereumProvider from "@metamask/detect-provider";
 
-export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+import React, { Component } from 'react'
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+declare global {
+  interface Window {
+    ethereum?: import("ethers").Eip1193Provider
+  }
+}
+
+interface IState {
+  alertColor: string,
+  alertMessage: string,
+
+  buttonClaimDisabled: boolean,
+  buttonClaimLoading: boolean,
+
+  address: string,
+  tx: string
+}
+
+export default class Home extends Component<{}, IState> {
+  constructor(props: any) {
+    super(props)
+
+    this.state = {
+      alertColor: "#ff5252",
+      alertMessage: "This is a testnet network, you cannot withdraw funds",
+
+      buttonClaimDisabled: false,
+      buttonClaimLoading: false,
+
+      address: "",
+      tx: ""
+    }
+  }
+
+  // componentDidMount(): void {
+  //   this.setState({
+  //     alertColor: "",
+  //     alertMessage: 
+  //   })
+  // }
+  claimCoin() {
+    (async () => {
+      this.setState({
+        buttonClaimDisabled: true,
+        buttonClaimLoading: true
+      })
+      const response = await fetch("http://103.59.160.67:8081/claim", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          address: this.state.address
+        })
+      })
+      const response_json = await response.json()
+      console.log(response_json)
+      if (response_json.status == "ok") {
+        this.setState({
+          tx: response_json.data.transaction_hash,
+          buttonClaimLoading: false
+        })
+      } else {
+        this.setState({
+          alertMessage: response_json.message,
+          buttonClaimLoading: false
+        })
+      }
+    })()
+  }
+
+  async addNetworkMetamask() {
+    try {
+      const result = await window.ethereum?.request({
+        method: "wallet_addEthereumChain",
+        params: [{
+          chainId: "0x5b9c",
+          rpcUrls: ["https://testnet-rpc.dreyerx.com"],
+          chainName: "DreyerX Testnet",
+          nativeCurrency: {
+            name: "DreyerX",
+            symbol: "DRX",
+            decimals: 18
+          },
+          blockExplorerUrls: ["https://testnet-scan.dreyerx.com"]
+        }]
+      })
+      console.log(result)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  renderAlert() {
+    if (this.state.tx === "") {
+      return (
+        <Box borderWidth={1} borderColor={this.state.alertColor} color={this.state.alertColor} w={"full"} p={3} px={4} borderRadius={2}>
+          {this.state.alertMessage}
+        </Box>
+      )
+    } else {
+      return (
+        <Box borderWidth={1} borderColor={"#80ff52"} color={"#80ff52"} w={"full"} p={3} px={4} borderRadius={2}>
+          Transaction Hash: <Link href={`https://testnet-scan.dreyerx.com/tx/${this.state.tx}`}>{this.state.tx.substring(0, 20)}...{this.state.tx.substring(this.state.tx.length - 5, this.state.tx.length)}</Link>
+        </Box>
+      )
+    }
+  }
+
+  render() {
+    return (
+      <>
+        <Box
+          width={{ base: 200, lg: 300, md: 250 }}
+          height={{ base: 200, lg: 300, md: 250 }}
+          bg={"primary"}
+          position={"absolute"}
+          filter={"blur(150px)"}
+          opacity={.5}
+          top={{ base: 5, lg: 150, md: 150 }}
+          left={{ base: 5, lg: 500, md: 150 }}
+          zIndex={-10000}
         />
-      </div>
+        <Box
+          width={{ base: 200, lg: 300, md: 250 }}
+          height={{ base: 200, lg: 300, md: 250 }}
+          bg={"#ff5252"}
+          position={"absolute"}
+          filter={"blur(150px)"}
+          opacity={.5}
+          bottom={{ base: 5, lg: 150, md: 150 }}
+          right={{ base: 1, lg: 500, md: 150 }}
+          zIndex={-10000}
+        />
+        <Flex justify={"center"} align={"center"} flexDirection={"column"} minH={"100vh"} gap={5}>
+          <Box bg={"card"} borderRadius={10} minH={400} p={10} borderWidth={1}>
+            <Flex alignItems={"center"} flexDirection={"column"} w={{ base: 250, md: 400, lg: 500 }}>
+              <Image src={"/images/dreyerx-horizontal.png"} alt="Logo" transitionDuration={'0.5s'} transitionTimingFunction={"ease-in-out"} w={{ base: 300 }} cursor={"pointer"} _hover={{
+                transform: "translateY(-10px)"
+              }} />
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+              <VStack w={"full"} my={10} gap={5}>
+                <Input placeholder="Your address (0x...)" borderWidth={1} borderColor={"rgba(255,255,255,.2)"} p={3} px={4} fontSize={16} color={"rgba(255,255,255,.5)"} variant={"unstyled"} value={this.state.address} onChange={(e) => this.setState({ address: e.target.value })} />
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+                {this.renderAlert()}
+                <Button bg={"none"} borderWidth={1} borderColor={"primary"} w={"full"} px={4} p={4} fontWeight={"normal"} _hover={{ bg: "none", borderWidth: 1, borderColor: "primary", transform: "translateY(-5px)" }} transitionDuration={"0.5s"} transitionTimingFunction={"ease-in-out"} _disabled={{ opacity: .5, cursor: "default", transform: "none" }} isLoading={this.state.buttonClaimLoading} isDisabled={this.state.buttonClaimDisabled} onClick={() => this.claimCoin()}>
+                  REQUEST 5 DRX
+                </Button>
+              </VStack>
+            </Flex>
+          </Box>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  );
+          <Box bg={"card"} borderRadius={10} minH={120} p={10} borderWidth={1}>
+            <Flex alignItems={"center"} flexDirection={"column"} w={{ base: 250, md: 400, lg: 500 }}>
+              <Button onClick={async () => await this.addNetworkMetamask()} bg={"none"} borderWidth={1} borderColor={"primary"} w={"full"} px={4} p={4} fontWeight={"normal"} _hover={{ bg: "none", borderWidth: 1, borderColor: "primary", transform: "translateY(-5px)" }} transitionDuration={"0.5s"} transitionTimingFunction={"ease-in-out"}>
+                <Image src={"/images/metamask.png"} width={7} mx={3} />
+                Add network to Metamask
+              </Button>
+            </Flex>
+          </Box>
+        </Flex>
+      </>
+    )
+  }
 }
