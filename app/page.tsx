@@ -16,8 +16,9 @@ export default function Home() {
       justify={'center'}
       align={'center'}
       gap={3}
+      px={['10px', 0]}
     >
-      <Card width={'450px'}>
+      <Card width={['full', '450px']}>
         <Flex flexDirection={'column'} width={'full'} gap={2}>
           <Heading
             textAlign={'center'}
@@ -42,7 +43,7 @@ export default function Home() {
         </Flex>
       </Card>
       <Card
-        width={'450px'}
+        width={['full', '450px']}
         gap={3}
       >
         <Flex
