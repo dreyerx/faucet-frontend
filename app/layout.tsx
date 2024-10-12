@@ -19,8 +19,8 @@ export const metadata: Metadata = {
     url: 'https://dreyerx.com'
   },
   keywords: [
-    'dreyerx', 
-    'testnet', 
+    'dreyerx',
+    'testnet',
     'dreyerx testnet',
     'free',
     'free testnet',
@@ -32,29 +32,12 @@ export const metadata: Metadata = {
   ],
   creator: 'DreyerX Labs',
   publisher: 'DreyerX',
-  icons: [
-    {
-      rel: 'icon',
-      url: ''
-    }
-  ],
   openGraph: {
     type: 'website',
     url: 'https://faucet.dreyerx.com',
     title: 'DreyerX Faucet',
     description: 'Get free DreyerX Testnet',
-    siteName: 'DreyerX Faucet',
-    images: [
-      {
-        url: ''
-      }
-    ]
-  },
-  twitter: {
-    card: 'app',
-    site: '@dreyerxcoin',
-    creator: '@dreyerxcoin',
-    images: ''
+    siteName: 'DreyerX Faucet'
   }
 };
 
