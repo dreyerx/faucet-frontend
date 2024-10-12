@@ -1,4 +1,5 @@
-import { networks, projectId, testnet, wagmiAdapter } from '@/config/wagmi'
+import { dreyerxTestnet } from '@reown/appkit/networks'
+import { projectId, wagmiAdapter } from '@/config/wagmi'
 import { Metadata } from '@reown/appkit'
 import { createAppKit } from '@reown/appkit/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -21,8 +22,8 @@ export const metadata: Metadata = {
 createAppKit({
     adapters: [wagmiAdapter],
     projectId,
-    networks,
-    defaultNetwork: testnet,
+    networks: [dreyerxTestnet],
+    defaultNetwork: dreyerxTestnet,
     metadata,
     features: {
         analytics: false,
@@ -36,7 +37,7 @@ export default function AppWalletProvider(props: {
     return (
         <WagmiProvider config={wagmiAdapter.wagmiConfig as Config} initialState={initialState}>
             <QueryClientProvider client={queryClient}>
-                { props.children }
+                {props.children}
             </QueryClientProvider>
         </WagmiProvider>
     )
