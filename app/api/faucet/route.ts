@@ -1,6 +1,6 @@
 import { ethers, JsonRpcProvider } from 'ethers'
 import { FAUCET_ADDRESS, SIGNER_PRIVATE_KEY } from "@/config/constants"
-import { hardhat, wagmiAdapter } from "@/config/wagmi"
+import { testnet, wagmiAdapter } from "@/config/wagmi"
 import { NextResponse } from "next/server"
 import { isAddress } from "viem"
 import { getBalance } from 'wagmi/actions'
@@ -14,7 +14,7 @@ export type ResponseData = {
     }
 }
 
-const provider = new JsonRpcProvider(hardhat.rpcUrl)
+const provider = new JsonRpcProvider(testnet.rpcUrl)
 const signer = new ethers.Wallet(SIGNER_PRIVATE_KEY, provider)
 
 export async function POST(
