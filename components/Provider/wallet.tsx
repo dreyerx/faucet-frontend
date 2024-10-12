@@ -1,4 +1,4 @@
-import { hardhat, networks, projectId, wagmiAdapter } from '@/config/wagmi'
+import { networks, projectId, testnet, wagmiAdapter } from '@/config/wagmi'
 import { Metadata } from '@reown/appkit'
 import { createAppKit } from '@reown/appkit/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -22,7 +22,7 @@ createAppKit({
     adapters: [wagmiAdapter],
     projectId,
     networks,
-    defaultNetwork: hardhat,
+    defaultNetwork: testnet,
     metadata,
     features: {
         analytics: false,
