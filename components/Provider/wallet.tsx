@@ -1,5 +1,4 @@
-import { dreyerxTestnet } from '@reown/appkit/networks'
-import { projectId, wagmiAdapter } from '@/config/wagmi'
+import { projectId, testnet, wagmiAdapter } from '@/config/wagmi'
 import { Metadata } from '@reown/appkit'
 import { createAppKit } from '@reown/appkit/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -22,8 +21,8 @@ export const metadata: Metadata = {
 createAppKit({
     adapters: [wagmiAdapter],
     projectId,
-    networks: [dreyerxTestnet],
-    defaultNetwork: dreyerxTestnet,
+    networks: [testnet],
+    defaultNetwork: testnet,
     metadata,
     features: {
         analytics: false,
