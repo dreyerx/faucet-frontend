@@ -28,7 +28,7 @@ export const testnet: CaipNetwork = {
     chainNamespace: 'eip155'
 }
 
-export const networks = [hardhat, testnet]
+export const networks = [testnet]
 
 export const wagmiAdapter = new WagmiAdapter({
     storage: createStorage({
