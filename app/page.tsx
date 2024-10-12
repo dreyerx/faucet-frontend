@@ -7,12 +7,6 @@ import { transparentize } from "polished";
 import { FaCheck } from "react-icons/fa";
 import ButtonAction from '@/components/Action/button';
 
-export function RenderStepper() {
-  return (
-    <ConnectStep />
-  )
-}
-
 export default function Home() {
   const [text] = useToken('colors', ['text'])
   return (
@@ -56,7 +50,7 @@ export default function Home() {
           width={'full'}
           gap={5}
         >
-          <RenderStepper />
+          <ConnectStep />
 
           <Turnstile
             siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
