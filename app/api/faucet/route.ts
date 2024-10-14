@@ -1,6 +1,6 @@
 import { ethers, JsonRpcProvider } from 'ethers'
 import { FAUCET_ADDRESS, SIGNER_PRIVATE_KEY } from "@/config/constants"
-import { testnet, wagmiAdapter } from "@/config/wagmi"
+import { wagmiAdapter } from "@/config/wagmi"
 import { NextResponse } from "next/server"
 import { isAddress } from "viem"
 import { getBalance } from 'wagmi/actions'
@@ -14,17 +14,15 @@ export type ResponseData = {
     }
 }
 
-const provider = new JsonRpcProvider(testnet.rpcUrls.default.http[0])
+const provider = new JsonRpcProvider("https://testnet-rpc.dreyerx.com")
 const signer = new ethers.Wallet(SIGNER_PRIVATE_KEY, provider)
 
 export async function POST(
     request: Request
 ) {
-    console.log(FAUCET_ADDRESS)
     const balance = await getBalance(wagmiAdapter.wagmiConfig, {
         address: FAUCET_ADDRESS
     })
-    console.log(signer.address)
     const { address } = await request.json()
 
     if (typeof address === 'undefined') {
