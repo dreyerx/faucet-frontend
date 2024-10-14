@@ -6,6 +6,10 @@ import { getBalance } from 'wagmi/actions'
 import FaucetArtifacts from '@/config/artifacts/faucet.json'
 import { privateKeyToAccount } from 'viem/accounts'
 
+if (!SIGNER_PRIVATE_KEY) {
+    throw new Error('Signer private key is not defined in the environment variables.');
+}
+
 export type ResponseData = {
     status: string,
     message: string,
@@ -65,16 +69,22 @@ export async function POST(
             }
         })
     } catch (error) {
+        console.error("Error while executing contract function:", error);
         if (error instanceof ContractFunctionExecutionError) {
             return NextResponse.json({
                 status: 'error',
                 message: error.shortMessage
-            })
+            });
         } else if (error instanceof Error) {
             return NextResponse.json({
                 status: 'error',
-                message: error?.message
-            })
+                message: error.message
+            });
+        } else {
+            return NextResponse.json({
+                status: 'error',
+                message: 'An unknown error occurred'
+            });
         }
     }
 }
