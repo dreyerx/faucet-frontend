@@ -1,10 +1,10 @@
-import { ethers, JsonRpcProvider } from 'ethers'
 import { FAUCET_ADDRESS, SIGNER_PRIVATE_KEY } from "@/config/constants"
-import { wagmiAdapter } from "@/config/wagmi"
+import { testnet, wagmiAdapter } from "@/config/wagmi"
 import { NextResponse } from "next/server"
-import { isAddress } from "viem"
+import { ContractFunctionExecutionError, createWalletClient, Hex, http, isAddress } from "viem"
 import { getBalance } from 'wagmi/actions'
 import FaucetArtifacts from '@/config/artifacts/faucet.json'
+import { privateKeyToAccount } from 'viem/accounts'
 
 export type ResponseData = {
     status: string,
@@ -14,8 +14,11 @@ export type ResponseData = {
     }
 }
 
-const provider = new JsonRpcProvider("https://testnet-rpc.dreyerx.com")
-const signer = new ethers.Wallet(SIGNER_PRIVATE_KEY, provider)
+const client = createWalletClient({
+    chain: testnet,
+    transport: http(),
+    account: privateKeyToAccount(SIGNER_PRIVATE_KEY as Hex)
+})
 
 export async function POST(
     request: Request
@@ -48,22 +51,29 @@ export async function POST(
     }
 
     try {
-        const contract = new ethers.Contract(FAUCET_ADDRESS, FaucetArtifacts.abi, signer)
-        const tx = await contract.request(address)
-        await tx.wait()
+        const tx = await client.writeContract({
+            address: FAUCET_ADDRESS as `0x${string}`,
+            abi: FaucetArtifacts.abi,
+            functionName: 'request'
+        })
 
         return NextResponse.json({
             status: 'ok',
             message: 'successfully to request faucet',
             data: {
-                tx: tx.hash
+                tx
             }
         })
     } catch (error) {
-        if (ethers.isCallException(error)) {
+        if (error instanceof ContractFunctionExecutionError) {
             return NextResponse.json({
                 status: 'error',
-                message: error.reason
+                message: error.shortMessage
+            })
+        } else if (error instanceof Error) {
+            return NextResponse.json({
+                status: 'error',
+                message: error?.message
             })
         }
     }
