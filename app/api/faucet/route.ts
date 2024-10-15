@@ -57,7 +57,10 @@ export async function POST(
         const tx = await client.writeContract({
             address: FAUCET_ADDRESS as `0x${string}`,
             abi: FaucetArtifacts.abi,
-            functionName: 'request'
+            functionName: 'request',
+            args: [
+                address
+            ]
         })
 
         return NextResponse.json({
