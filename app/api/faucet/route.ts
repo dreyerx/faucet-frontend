@@ -27,34 +27,33 @@ const client = createWalletClient({
 export async function POST(
     request: Request
 ) {
-    const balance = await getBalance(wagmiAdapter.wagmiConfig, {
-        address: FAUCET_ADDRESS
-    })
-    const { address } = await request.json()
-
-    if (typeof address === 'undefined') {
-        return NextResponse.json({
-            status: 'error',
-            message: 'address is required'
-        })
-    }
-
-    const isValid = isAddress(address)
-    if (!isValid) {
-        return NextResponse.json({
-            status: 'error',
-            message: 'invalid address format'
-        })
-    }
-
-    if (balance.value < BigInt(5)) {
-        return NextResponse.json({
-            status: 'error',
-            message: 'insufficient faucet address balance'
-        })
-    }
-
     try {
+        const balance = await getBalance(wagmiAdapter.wagmiConfig, {
+            address: FAUCET_ADDRESS
+        })
+        const { address } = await request.json()
+
+        if (typeof address === 'undefined') {
+            return NextResponse.json({
+                status: 'error',
+                message: 'address is required'
+            })
+        }
+
+        const isValid = isAddress(address)
+        if (!isValid) {
+            return NextResponse.json({
+                status: 'error',
+                message: 'invalid address format'
+            })
+        }
+
+        if (balance.value < BigInt(5)) {
+            return NextResponse.json({
+                status: 'error',
+                message: 'insufficient faucet address balance'
+            })
+        }
         const tx = await client.writeContract({
             address: FAUCET_ADDRESS as `0x${string}`,
             abi: FaucetArtifacts.abi,
