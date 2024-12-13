@@ -4,11 +4,22 @@ import Card from "@/components/Card";
 import ConnectStep from "@/components/Steps/connect";
 import { Flex, Heading, List, ListIcon, ListItem, Text, useToken } from "@chakra-ui/react";
 import { transparentize } from "polished";
-import { FaCheck } from "react-icons/fa";
+import { FaCheck, FaGithub, FaTelegram, FaTwitter } from "react-icons/fa";
 import ButtonAction from '@/components/Action/button';
+import Button from '@/components/Button';
+import Link from 'next/link';
+import { useState } from 'react';
 
 export default function Home() {
   const [text] = useToken('colors', ['text'])
+
+  const [isLinkClicked, setLinkClicked] = useState({
+    twitter: false,
+    telegram: false,
+    github: false
+  })
+
+
   return (
     <Flex
       flexDirection={'column'}
@@ -44,7 +55,7 @@ export default function Home() {
       </Card>
       <Card
         width={['full', '450px']}
-        gap={3}
+        gap={2}
       >
         <Flex
           flexDirection={'column'}
@@ -53,10 +64,43 @@ export default function Home() {
         >
           <ConnectStep />
 
+
           <Turnstile
             siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
           />
-          <ButtonAction />
+          <Flex flexDirection={'column'} gap={2} justify={'center'}>
+            <Flex gap={1} justify={'center'}>
+              <Link
+                href={'https://x.com/dreyerxcoin'}
+                target='_blank'
+              >
+                <Button backgroundColor={isLinkClicked.twitter ? 'primary1' : 'bg1'} size={'sm'} onClick={() => setLinkClicked(prev => ({ ...prev, twitter: true }))}>
+                  <FaTwitter style={{ marginRight: '5px' }} />
+                  Follow X
+                </Button>
+              </Link>
+              <Link
+                href={'https://t.me/dreyerxcoin'}
+                target='_blank'
+              >
+                <Button backgroundColor={isLinkClicked.telegram ? 'primary1' : 'bg1'} size={'sm'} onClick={() => setLinkClicked(prev => ({ ...prev, telegram: true }))}>
+                  <FaTelegram style={{ marginRight: '5px' }} />
+                  Join Telegram
+                </Button>
+              </Link>
+              <Link
+                href={'https://github.com/dreyerx'}
+                target='_blank'
+              >
+                <Button backgroundColor={isLinkClicked.github ? 'primary1' : 'bg1'} size={'sm'} onClick={() => setLinkClicked(prev => ({ ...prev, github: true }))}>
+                  <FaGithub style={{ marginRight: '5px' }} />
+                  Follow Github
+                </Button>
+              </Link>
+
+            </Flex>
+            <ButtonAction />
+          </Flex>
         </Flex>
       </Card>
     </Flex>
