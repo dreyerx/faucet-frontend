@@ -75,12 +75,14 @@ export async function POST(
         if (error instanceof ContractFunctionExecutionError) {
             return NextResponse.json({
                 status: 'error',
-                message: error.shortMessage
+                message: error.shortMessage,
+                addr: FAUCET_ADDRESS
             });
         } else if (error instanceof Error) {
             return NextResponse.json({
                 status: 'error',
-                message: error.message
+                message: error.message,
+                addr: FAUCET_ADDRESS
             });
         } else {
             return NextResponse.json({

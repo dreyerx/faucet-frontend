@@ -14,7 +14,6 @@ export default function ConnectStep() {
     const { onInputAddress } = useFaucetHandler()
 
     useEffect(() => {
-        console.log(address)
         onInputAddress(
             address ?? ''
         )
